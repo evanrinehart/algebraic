@@ -8,6 +8,50 @@ class Unit
   end
 end
 
+class Boolean
+  def initialize a, b
+    @false = a
+    @true = b
+  end
+
+  def self.f
+    Boolean.new Unit.new, nil
+  end
+
+  def self.t
+    Boolean.new nil, Unit.new
+  end
+
+  def case cases
+    case
+      when @false then cases[:f].call
+      when @true then cases[:t].call 
+    end
+  end
+
+  def to_s
+    case
+      when @false then "F[]"
+      when @true then "T[]"
+      else raise "bug"
+    end
+  end
+
+  alias_method :inspect, :to_s
+
+  def to_b
+    !@false
+  end
+
+  def not
+    self.case({
+      :f => lambda{ Boolean.t },
+      :t => lambda{ Boolean.f }
+    })
+  end
+
+end
+
 class Wrap
   attr_reader :unwrap
   def initialize x

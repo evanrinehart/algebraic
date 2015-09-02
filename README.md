@@ -9,6 +9,7 @@ utility methods for them.
 - Result has two Wrap-like constructors Result.ok(v) and Result.error(e).
 - Nat has the nullary constructor Nat.z and the unary constructor Nat.s intended only to be used on other Nats.
 - List is either List.empty or List.cons(x, list), which is like a payloads-carrying Nat.
+- Boolean has two Unit-like values Boolean.t and Boolean.f and that's it.
 
 The core implementation of these data structures is so similar that it would be
 interesting to make a dynamic generator for them so you can make new ones.
@@ -74,6 +75,9 @@ shoes
 
 > Result.error("CRUD").get_ok
 Runtime Error: Error["CRUD"].get_ok
+
+> Boolean.t.not.not.not
+=> F[]
 ```
 
 ## FAQ
