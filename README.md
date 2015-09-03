@@ -1,148 +1,91 @@
 # Algebraic Data Types
 
-Includes a rogues gallery of basic (very basic) data structures and some
-utility methods for them.
+Includes a inheritable super class to create user-defined algebraic data types
+using ruby dynamic programming.
 
-- Unit has only one value which carries no information.
-- Wrap carries one dynamic value that you can unwrap. This lets you distinguish between nil and Wrap.new(nil).
-- Option has two constructors, Option.some(x) is like Wrap and Option.none represents no value.
-- Result has two Wrap-like constructors Result.ok(v) and Result.error(e).
-- Nat has the nullary constructor Nat.z and the unary constructor Nat.s intended only to be used on other Nats.
-- List is either List.empty or List.cons(x, list), which is like a payloads-carrying Nat.
-- Boolean has two Unit-like values Boolean.t and Boolean.f and that's it.
+## Example
 
-## API
-
-```
-Unit.new : Unit
-
-Wrap.new : a -> Wrap a
-.unwrap  : Wrap a -> a
-
-Boolean.t : Boolean
-Boolean.f : Boolean
-.not : Boolean -> Boolean
-.to_b : Boolean -> Bool
-
-Option.some : a -> Option a
-Option.none : Option a
-.default : Option a -> a -> a
-.map : Option a -> Block a b -> Option b
-.and_then : Option a -> Block a (Option b) -> Option b
-.to_a : Option a -> [a]
-.none? : Option a -> Bool
-.first_option : [Option a] -> Option a
-.cat_options : [Option a] -> [a]
-(partial) .get_some : Option a -> a
-
-Result.ok : a -> Result a b
-Result.error : b -> Result a b
-.error? : Result a b -> Bool
-(partial) .get_ok : Result a b -> a
-(partial) .get_error : Result a b -> b
-
-Nat.z : Nat
-Nat.s or .s : Nat -> Nat
-.times : Nat -> Block a -> (Execute block n times and return nil)
-.to_i : Nat -> Fixnum
-.zero? : Nat -> Bool
-.to_nat : Fixnum -> Nat
-(partial) .pred : Nat -> Nat
-
-List.empty : List a
-List.cons : a -> List a -> List a
-.empty? : List a -> Bool
-.each : List a -> Block a b -> (Execute block for each element and return nil)
-.map : List a -> Block a b -> List b
-.to_a : List a -> [a]
-.to_list : [a] -> List a
-(partial) .uncons : List a -> (a, List a)
-```
-
-## Cases
-
-Each ADT has a case method which is the basic way to safely destructure a value.
-
-```
-Option.some(3).case({
-  some: ->(n){ n + 1 },
-  none: ->{ 9999 }
-})
-=> 4
-```
-
-## Examples
+The pair is the simplest non-trivial data structure. This example shows that
+*is* creates a constructor and an instance variable containing the packed
+payload.
 
 ```ruby
-> Unit.new
-=> Unit[]
+class Pair < Algebraic
+  is :pair, :x, :y
 
-> Wrap.new(3)
-=> Wrap[3]
+  def left
+    @pair[0]
+  end
 
-> Wrap.new(3).unwrap
-=> 3
+  def right
+    @pair[1]
+  end
+end
 
-> Option.some(3)
-=> Some[3]
-
-> Option.some(3).default(9)
-=> 3
-
-> Option.none.default(9)
-=> 9
-
-> Option.some(3).map{|x| x+1 }
-=> Some[4]
-
-> Option.none.map{|x| x+1 }
-=> None[]
-
-> [Option.some("shoes"), Option.none, Option.some("apples")].cat_options
-=> ["shoes", "apples"]
-
-> [Option.none, Option.some("shoes"), Option.some("apples")].first_option
-=> "shoes"
-
-> [1,2,3].to_list
-=> Cons[1, Cons[2, Cons[3, Empty[]]]]
-
-> 5.to_nat
-=> S[S[S[S[S[Z[]]]]]]
-
-> 5.to_nat.s.s.s.to_i
-=> 8
-
-> 3.to_nat.times{ puts "shoes" }
-shoes
-shoes
-shoes
-
-> Result.ok(6).case({
-  ok: ->(x){ "number x 10: #{x*10}" },
-  error: ->(e){ "***ERROR: #{e}***" }
-})
-=> "number x 10: 60"
-
-> Result.error("CRUD").case({
-  ok: ->(x){ "number x 10: #{x*10}" },
-  error: ->(e){ "***ERROR: #{e}***" }
-})
-=> "***ERROR: CRUD***"
-
-> Result.error("CRUD").get_ok
-Runtime Error: Error["CRUD"].get_ok
-
-> Boolean.t.not.not.not
-=> F[]
+> Pair.pair 37, "shoes"
+=> Pair[37, "shoes"]
 ```
 
-## User-defined ADTs
+In this example I create a safe wrapper for a result which may be missing.
+Something like this has the benefit of allowing the value nil to be
+distinguished from "no value" if necessary. *or* is a reserved word so I have
+to use French.
 
-The core implementation of these data structures is so similar that I moved it
-all into a super class and added a dynamic "DSL" so you can make new ones.
-Create a new ADT by making a subclass of Algebraic and defining the alternatives
-using an *is ... or ...* pattern as shown below. 
+```ruby
+class Option < Algebraic
+  est :some, :x
+  ou :none
+
+  def default d
+    case(
+      some: ->(x){ x },
+      none: ->{ d }
+    )
+  end
+
+  def to_a
+    case(
+      some: ->(x){ [x] },
+      none: ->{ [] }
+    )
+  end
+
+  def map &block
+    case(
+      some: ->(x){ Option.some block.call(x) },
+      none: Option.none
+    )
+  end
+
+  class ::Array
+    def head
+      self.empty? ? Option.none : Option.some(self.first)
+    end
+  end
+end
+
+> Option.some 9
+=> Some[9]
+
+> Option.some(9).default(40)
+=> 9
+
+> Option.none.default(40)
+=> 40
+
+> [].head
+=> None[]
+
+> [nil].head
+=> Some[nil]
+```
+
+Or you can use German or Spanish. Russian как / или also works.
+
+This is a basic enum class with four possibilities. Each Algebraic subclass
+has the case method which is the go-to technique for safely destructing or
+making decisions based on an alternative. The _ case will trigger for any
+instance.
 
 ```ruby
 class Suit < Algebraic
@@ -152,29 +95,34 @@ class Suit < Algebraic
   ou :heart
 end
 
-> Suit.diamond
+> suit = Suit.diamond
 => Diamond[]
+
+> pointValue = suit.case(
+  diamond: ->{ 5 }
+  spade:   ->{ 1 }
+  _:       ->{ 0 }
+)
+=> 5
 ```
 
-Each alternative creates a new constructor as a class method. Also please
-excuse the French because *or* is reserved. When you need more than one alternative
-you can use French, German, or Spanish. Russian как / или also works.
-
-The example below shows a binary search tree being defined with nodes that have
-three payload elements.
+The linked list is a classic structure for seqential data and can be used
+as a stack.
 
 ```ruby
-class Tree < Algebraic
-  est :leaf
-  ou :node, :tree, :x, :tree
+class List < Algebraic
+  est :empty
+  ou :cons, :x, :list
+
+  def push x
+    List.cons x, self
+  end
+
+  def pop
+    case(
+      cons:  ->(x, xs){ x }
+      empty: ->{ raise "Empty[].pop" }
+    )
+  end
 end
-
-> Tree.node Tree.leaf, 9, Tree.leaf
-=> Node[Leaf[], 9, Leaf[]]
 ```
-
-## FAQ
-
-### What's the point of these classes?
-
-- None
