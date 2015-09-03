@@ -38,21 +38,21 @@ class Option < Algebraic
   ou :none
 
   def default d
-    case(
+    self.case(
       some: ->(x){ x },
       none: ->{ d }
     )
   end
 
   def to_a
-    case(
+    self.case(
       some: ->(x){ [x] },
       none: ->{ [] }
     )
   end
 
   def map &block
-    case(
+    self.case(
       some: ->(x){ Option.some block.call(x) },
       none: Option.none
     )
@@ -99,8 +99,8 @@ end
 => Diamond[]
 
 > pointValue = suit.case(
-  diamond: ->{ 5 }
-  spade:   ->{ 1 }
+  diamond: ->{ 5 },
+  spade:   ->{ 1 },
   _:       ->{ 0 }
 )
 => 5
@@ -120,7 +120,7 @@ class List < Algebraic
 
   def pop
     case(
-      cons:  ->(x, xs){ x }
+      cons:  ->(x, xs){ x },
       empty: ->{ raise "Empty[].pop" }
     )
   end
