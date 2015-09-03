@@ -106,7 +106,7 @@ end
 => 5
 ```
 
-The linked list is a classic structure for seqential data and can be used
+The linked list is a classic structure for sequential data and can be used
 as a stack.
 
 ```ruby
