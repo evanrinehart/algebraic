@@ -1,13 +1,14 @@
 # Algebraic Data Types
 
-Includes a inheritable super class to create user-defined algebraic data types
+Includes a inheritable superclass to create user-defined algebraic data types
 using ruby dynamic programming.
 
 ## Example
 
 The pair is the simplest non-trivial data structure. This example shows that
 *is* creates a constructor and an instance variable containing the packed
-payload.
+payload. The argument names `:x` and `:y` are just for your information and don't
+have any effect.
 
 ```ruby
 class Pair < Algebraic
@@ -29,7 +30,7 @@ end
 In this example I create a safe wrapper for a result which may be missing.
 Something like this has the benefit of allowing the value nil to be
 distinguished from "no value" if necessary. *or* is a reserved word so I have
-to use French.
+to use French. (Or you can use German or Spanish. Russian как / или also works.)
 
 ```ruby
 class Option < Algebraic
@@ -80,7 +81,6 @@ end
 => Some[nil]
 ```
 
-Or you can use German or Spanish. Russian как / или also works.
 
 This is a basic enum class with four possibilities. Each Algebraic subclass
 has the case method which is the go-to technique for safely destructing or
@@ -125,4 +125,10 @@ class List < Algebraic
     )
   end
 end
+
+> stack = List.empty.push(1).push(2).push(3)
+=> Cons[3, Cons[2, Cons[1, Empty[]]]]
+
+> stack.pop
+=> 3
 ```
