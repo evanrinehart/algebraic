@@ -21,10 +21,21 @@ class Pair < Algebraic
   def right
     @pair[1]
   end
+
+  def to_a
+    @pair
+  end
+
+  def map &block
+    block.call *@pair
+  end
 end
 
 > Pair.pair 37, "shoes"
 => Pair[37, "shoes"]
+
+> Pair.pair(37,"lo").map{|a,b| b * a }
+=> "lololololololololololololololololololololololololololololololololololololo"
 ```
 
 In this example I create a safe wrapper for a result which may be missing.
