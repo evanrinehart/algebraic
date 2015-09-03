@@ -194,12 +194,12 @@ class List < Algebraic
   end
 end
 
-> l = List.cons 1, List.empty
+> l = List.empty
 > 100000.times{ l = List.cons 1, l }
 > l.bad_map{|x| x+1}.length
 SystemStackError: stack level too deep
 
 > l.map{|x| x+1}.length
-100001
+100000
 ```
 
