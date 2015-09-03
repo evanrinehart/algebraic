@@ -14,6 +14,64 @@ utility methods for them.
 The core implementation of these data structures is so similar that it would be
 interesting to make a dynamic generator for them so you can make new ones.
 
+## API
+
+```
+Unit.new : Unit
+
+Wrap.new : a -> Wrap a
+.unwrap  : Wrap a -> a
+
+Boolean.t : Boolean
+Boolean.f : Boolean
+.not : Boolean -> Boolean
+
+Option.some : a -> Option a
+Option.none : Option a
+.default : Option a -> a -> a
+.map : Option a -> Block a b -> Option b
+.and_then : Option a -> Block a (Option b) -> Option b
+.to_a : Option a -> [a]
+.none? : Option a -> Bool
+.first_option : [Option a] -> Option a
+.cat_options : [Option a] -> [a]
+(partial) .get_some : Option a -> a
+
+Result.ok : a -> Result a b
+Result.error : b -> Result a b
+(partial) .get_ok : Result a b -> a
+(partial) .get_error : Result a b -> b
+
+Nat.z : Nat
+Nat.s or .s : Nat -> Nat
+.times : Nat -> Block a -> (Execute block n times and return nil)
+.to_i : Nat -> Fixnum
+.zero? : Nat -> Bool
+.to_nat : Fixnum -> Nat
+(partial) .pred : Nat -> Nat
+
+List.empty : List a
+List.cons : a -> List a -> List a
+.empty? : List a -> Bool
+.each : List a -> Block a b -> (Execute block for each element and return nil)
+.map : List a -> Block a b -> List b
+.to_a : List a -> [a]
+.to_list : [a] -> List a
+(partial) .uncons : List a -> (a, List a)
+```
+
+## Cases
+
+Each ADT has a case method which is the basic way to safely destructure a value.
+
+```
+Option.some(3).case({
+  some: ->(n){ n + 1 },
+  none: ->{ 9999 }
+})
+=> 4
+```
+
 ## Examples
 
 ```ruby
@@ -62,14 +120,14 @@ shoes
 shoes
 
 > Result.ok(6).case({
-  :ok => ->(x){ "number x 10: #{x*10}" },
-  :error => ->(e){ "***ERROR: #{e}***" }
+  ok: ->(x){ "number x 10: #{x*10}" },
+  error: ->(e){ "***ERROR: #{e}***" }
 })
 => "number x 10: 60"
 
 > Result.error("CRUD").case({
-  :ok => ->(x){ "number x 10: #{x*10}" },
-  :error => ->(e){ "***ERROR: #{e}***" }
+  ok: ->(x){ "number x 10: #{x*10}" },
+  error: ->(e){ "***ERROR: #{e}***" }
 })
 => "***ERROR: CRUD***"
 
