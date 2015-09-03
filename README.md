@@ -112,7 +112,7 @@ Option.some(3).case({
 > 5.to_nat
 => S[S[S[S[S[Z[]]]]]]
 
-> 5.s.s.s.to_i
+> 5.to_nat.s.s.s.to_i
 => 8
 
 > 3.to_nat.times{ puts "shoes" }
