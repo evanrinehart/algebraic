@@ -58,16 +58,23 @@ class Algebraic
       v = self.instance_variable_get "@#{ctor}"
       if v
         arity = _arity_of ctor
-        if arity == 0
-          return cases[ctor].call
-        elsif arity == 1
-          return cases[ctor].call v.unwrap
+        if !cases.has_key?(ctor) && cases.has_key?(:_)
+          k = :_
+        elsif cases.has_key?(ctor)
+          k = ctor
         else
-          return cases[ctor].call *v
+          raise "missing case"
+        end
+        if arity == 0
+          return cases[k].call
+        elsif arity == 1
+          return cases[k].call v.unwrap
+        else
+          return cases[k].call *v
         end
       end
     end
-    raise "missing a case"
+    raise "bug"
   end
 
   def to_s
