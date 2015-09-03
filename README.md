@@ -132,3 +132,74 @@ end
 > stack.pop
 => 3
 ```
+
+## Recursion Trouble
+
+Many utility functions for recursive structures like the list are easily
+implemented behind the scenes using recursion. However this won't be efficient
+in Ruby because each recursive call that doesn't return causes a frame to be
+pushed on the runtime's call stack. To traverse structures you will have to
+implement a traversal method like shown on a case by case basis.
+
+```ruby
+class List < Algebraic
+  est :empty
+  ou :cons, :x, :list
+
+  def each &block
+    node = self
+    loop do
+      x,nextNode = node.case(  
+        empty: ->{ nil },
+        cons: ->(x,xs){ [x,xs] }
+      )
+      if x
+        block.call x
+        node = nextNode
+      else
+        return nil
+      end
+    end
+  end
+
+  def length
+    n = 0
+    self.each do |x|
+      n = n + 1
+    end
+    n
+  end
+
+  def to_a
+    a = []
+    self.each do |x|
+      a.push x
+    end
+    a
+  end
+
+  def map &block
+    l = List.empty
+    self.to_a.reverse.each do |x|
+      l = List.cons block.call(x), l
+    end
+    l
+  end
+
+  def bad_map &block
+    self.case(
+      empty: ->{ List.empty },
+      cons: ->(x,xs){ List.cons block.call(x), xs.bad_map(&block) }
+    )
+  end
+end
+
+> l = List.cons 1, List.empty
+> 100000.times{ l = List.cons 1, l }
+> l.bad_map{|x| x+1}.length
+SystemStackError: stack level too deep
+
+> l.map{|x| x+1}.length
+100001
+```
+
