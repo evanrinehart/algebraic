@@ -1,43 +1,128 @@
-class Unit
-  def inspect
-    'Unit[]'
+class Algebraic
+
+  class << self
+    attr_accessor :_ctors, :_arities
+    def is ctor, *args
+      @_ctors = [ctor]
+      @_arities = {}
+      @_arities[ctor] = args.length
+
+      self.class.send(:define_method, ctor, proc{|*args| self.new ctor, *args})
+    end
+
+    def or ctor, *args
+      @_ctors.push ctor
+      @_arities[ctor] = args.length
+
+      self.class.send(:define_method, ctor, proc{|*args| self.new ctor, *args})
+    end
+
+    alias_method :est, :is
+    alias_method :ou, :or
+    alias_method :ist, :is
+    alias_method :oder, :or
+    alias_method :es, :is
+    alias_method :o, :or
+    alias_method :как, :is
+    alias_method :или, :or
   end
 
-  def to_s
-    inspect
-  end
-end
-
-class Boolean
-  def initialize a, b
-    @false = a
-    @true = b
+  class Wrap
+    attr_reader :unwrap
+    def initialize x
+      @unwrap = x
+    end
   end
 
-  def self.f
-    Boolean.new Unit.new, nil
+  def initialize ctor, *values
+    arity = _arity_of ctor
+    if arity == 0
+      self.instance_variable_set("@#{ctor}", true)
+    elsif arity == 1
+      self.instance_variable_set("@#{ctor}", Wrap.new(values.first))
+    else
+      self.instance_variable_set("@#{ctor}", values)
+    end
   end
 
-  def self.t
-    Boolean.new nil, Unit.new
+  def _ctors
+    self.class._ctors
+  end
+
+  def _arity_of ctor
+    self.class._arities[ctor]
   end
 
   def case cases
-    case
-      when @false then cases[:f].call
-      when @true then cases[:t].call 
+    self.class._ctors.each do |ctor|
+      v = self.instance_variable_get "@#{ctor}"
+      if v
+        arity = _arity_of ctor
+        if arity == 0
+          return cases[ctor].call
+        elsif arity == 1
+          return cases[ctor].call v.unwrap
+        else
+          return cases[ctor].call *v
+        end
+      end
     end
+    raise "missing a case"
   end
 
   def to_s
-    case
-      when @false then "F[]"
-      when @true then "T[]"
-      else raise "bug"
+    _ctors.each do |ctor|
+      v = self.instance_variable_get "@#{ctor}"
+      if v
+        arity = _arity_of ctor
+        if arity == 0
+          return "#{ctor.capitalize}[]"
+        elsif arity == 1
+          return "#{ctor.capitalize}[#{v.unwrap.inspect}]"
+        else
+          return "#{ctor.capitalize}#{v.inspect}"
+        end
+      end
     end
+    raise "bug"
   end
 
   alias_method :inspect, :to_s
+
+end
+
+class Pair < Algebraic
+
+  is :pair, :x, :y
+
+  def initialize x, y
+    super :pair, x, y
+  end
+
+  def l
+    @pair[0]
+  end
+
+  def r
+    @pair[1]
+  end
+
+end
+
+class Unit < Algebraic
+
+  is :unit
+
+  def initialize
+    super :unit
+  end
+
+end
+
+class Boolean < Algebraic
+
+  est :t
+  ou :f
 
   def to_b
     !@false
@@ -52,52 +137,20 @@ class Boolean
 
 end
 
-class Wrap
-  attr_reader :unwrap
-  def initialize x
-    @unwrap = x
+class Wrap < Algebraic
+
+  is :wrap, :x
+
+  def unwrap
+    @wrap.unwrap
   end
 
-  def inspect
-    "Wrap[#{@unwrap.inspect}]"
-  end
-
-  def to_s
-    inspect
-  end
 end
 
-class Option
+class Option < Algebraic
 
-  def initialize a, b
-    @some = a
-    @none = b
-  end
-
-  def self.some a
-    Option.new Wrap.new(a), nil
-  end
-
-  def self.none
-    Option.new nil, Unit.new
-  end
-
-  def case cases
-    case
-      when @some then cases[:some].call(@some.unwrap)
-      when @none then cases[:none].call 
-    end
-  end
-
-  def to_s
-    case
-      when @some then "Some[#{@some.unwrap.inspect}]"
-      when @none then "None[]"
-      else raise "bug"
-    end
-  end
-
-  alias_method :inspect, :to_s
+  est :some, :x
+  ou :none
 
   def default d
     self.case({
@@ -190,37 +243,10 @@ class Option
 
 end
 
-class Result
+class Result < Algebraic
 
-  def initialize a, b
-    @ok = a
-    @error = b
-  end
-
-  def self.ok a
-    Result.new Wrap.new(a), nil
-  end
-
-  def self.error b
-    Result.new nil, Wrap.new(b)
-  end
-
-  def case cases
-    case
-      when @ok then cases[:ok].call @ok.unwrap
-      when @error then cases[:error].call @error.unwrap
-    end
-  end
-
-  def to_s
-    case
-      when @ok then "Ok[#{@ok.unwrap.inspect}]"
-      when @error then "Error[#{@error.unwrap.inspect}]"
-      else raise "bug"
-    end
-  end
-
-  alias_method :inspect, :to_s
+  est :ok, :x
+  ou :error, :y
 
   def error?
     !@ok
@@ -236,36 +262,10 @@ class Result
 
 end
 
-class Nat
-  attr_reader :z, :s
+class Nat < Algebraic
 
-  def initialize z, s
-    @z = z
-    @s = s
-  end
-
-  def self.z
-    Nat.new Unit.new, nil
-  end
-
-  def self.s n
-    Nat.new nil, Wrap.new(n)
-  end
-
-  def case cases
-    case
-      when @s then cases[:s].call(@s.unwrap)
-      when @z then cases[:z].call 
-    end
-  end
-
-  def to_s
-    case
-      when @z then "Z[]"
-      when @s then "S[#{@s.unwrap.inspect}]"
-      else raise 'bug'
-    end
-  end
+  est :z
+  ou :s, :n
 
   def times &block
     y = self
@@ -287,14 +287,12 @@ class Nat
   end
 
   def zero?
-    !@succ
+    !@s
   end
 
   def s
     Nat.s self
   end
-
-  alias_method :inspect, :to_s
 
   def pred
     (@s || raise("#{to_s}.pred")).unwrap
@@ -310,37 +308,10 @@ class Nat
 
 end
 
-class List
+class List < Algebraic
 
-  def initialize empty, cons
-    @empty = empty
-    @cons = cons
-  end
-
-  def self.cons x, xs
-    List.new nil, [x, xs]
-  end
-
-  def self.empty
-    List.new [], nil
-  end
-
-  def case cases
-    case
-      when @cons then cases[:cons].call(@cons)
-      when @empty then cases[:empty].call
-    end
-  end
-
-  def to_s
-    case
-      when @cons then "Cons#{@cons.inspect}"
-      when @empty then "Empty[]"
-      else raise "bug"
-    end
-  end
-
-  alias_method :inspect, :to_s
+  est :empty
+  ou :cons, :x, :list
 
   def empty?
     !@cons

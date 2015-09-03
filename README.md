@@ -11,9 +11,6 @@ utility methods for them.
 - List is either List.empty or List.cons(x, list), which is like a payloads-carrying Nat.
 - Boolean has two Unit-like values Boolean.t and Boolean.f and that's it.
 
-The core implementation of these data structures is so similar that it would be
-interesting to make a dynamic generator for them so you can make new ones.
-
 ## API
 
 ```
@@ -25,6 +22,7 @@ Wrap.new : a -> Wrap a
 Boolean.t : Boolean
 Boolean.f : Boolean
 .not : Boolean -> Boolean
+.to_b : Boolean -> Bool
 
 Option.some : a -> Option a
 Option.none : Option a
@@ -137,6 +135,42 @@ Runtime Error: Error["CRUD"].get_ok
 
 > Boolean.t.not.not.not
 => F[]
+```
+
+## User-defined ADTs
+
+The core implementation of these data structures is so similar that I moved it
+all into a super class and added a dynamic "DSL" so you can make new ones.
+Create a new ADT by make a subclass of Algebraic and defining the alternatives
+using an *is ... or ...* pattern as shown below. 
+
+```ruby
+class Suit < Algebraic
+  est :club
+  ou :diamond
+  ou :spade
+  ou :heart
+end
+
+> Suit.diamond
+=> Diamond[]
+```
+
+Each alternative creates a new constructor as a class method. Also please
+excuse the French because *or* is reserved. When you need more than one alternative
+you can use French, German, or Spanish. Russian как / или also works.
+
+The example below shows a binary search tree being defined with nodes that have
+three payload elements.
+
+```ruby
+class Tree < Algebraic
+  est :leaf
+  ou :node, :tree, :x, :tree
+end
+
+> Tree.node Tree.leaf, 9, Tree.leaf
+=> Node[Leaf[], 9, Leaf[]]
 ```
 
 ## FAQ
