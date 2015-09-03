@@ -222,6 +222,10 @@ class Result
 
   alias_method :inspect, :to_s
 
+  def error?
+    !@ok
+  end
+
   def get_ok
     (@ok || raise("#{to_s}.get_ok")).unwrap
   end

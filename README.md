@@ -39,6 +39,7 @@ Option.none : Option a
 
 Result.ok : a -> Result a b
 Result.error : b -> Result a b
+.error? : Result a b -> Bool
 (partial) .get_ok : Result a b -> a
 (partial) .get_error : Result a b -> b
 
