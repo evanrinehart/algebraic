@@ -141,7 +141,7 @@ Runtime Error: Error["CRUD"].get_ok
 
 The core implementation of these data structures is so similar that I moved it
 all into a super class and added a dynamic "DSL" so you can make new ones.
-Create a new ADT by make a subclass of Algebraic and defining the alternatives
+Create a new ADT by making a subclass of Algebraic and defining the alternatives
 using an *is ... or ...* pattern as shown below. 
 
 ```ruby
