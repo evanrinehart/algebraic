@@ -36,7 +36,7 @@ end
 > Pair.pair 37, "shoes"
 => Pair[37, "shoes"]
 
-> Pair.pair(37,"lo").map{|a,b| b * a }
+> Pair.pair(37,"lo").unpack{|a,b| b * a }
 => "lololololololololololololololololololololololololololololololololololololo"
 
 > Pair.new true, nil # when there is only one ctor new works
