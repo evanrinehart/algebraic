@@ -203,7 +203,7 @@ class Wrap < Algebraic
   is :wrap, :x
 
   def unwrap
-    @wrap.unwrap # 1-ary payloads are packed in a Wrap to distinguish from nil
+    @wrap
   end
 end
 
