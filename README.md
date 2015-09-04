@@ -134,6 +134,7 @@ end
 The linked list is a classic structure for sequential data and can be used
 as a stack. Here I also demonstrate that providing a class as one of the
 arguments will provide a rudimentary runtime check for that argument.
+Boolean is an ad-hoc dummy class which will match TrueClass or FalseClass.
 
 ```ruby
 class List < Algebraic

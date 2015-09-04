@@ -133,17 +133,3 @@ end
 
 class Boolean
 end
-
-class Pair < Algebraic
-  is :pair, :x, Boolean
-end
-
-class Opt < Algebraic
-  is :some, :x
-  au :none
-end
-
-class Tree < Algebraic
-  is :leaf
-  au :node, Tree, :x, Tree
-end
