@@ -4,10 +4,6 @@ class Pair < Algebraic
 
   is :pair, :x, :y
 
-  def initialize x, y
-    super :pair, x, y
-  end
-
   def l
     @pair[0]
   end
@@ -22,13 +18,9 @@ class Unit < Algebraic
 
   is :unit
 
-  def initialize
-    super :unit
-  end
-
 end
 
-class Boolean < Algebraic
+class Bool < Algebraic
 
   is :t
   au :f
@@ -51,7 +43,7 @@ class Wrap < Algebraic
   is :wrap, :x
 
   def unwrap
-    @wrap.unwrap
+    @wrap
   end
 
 end

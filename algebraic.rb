@@ -68,7 +68,11 @@ class Algebraic
     if arity == 0
       self.instance_variable_set("@#{ctor}", true)
     elsif arity == 1
-      self.instance_variable_set("@#{ctor}", Wrap.new(values.first))
+      if _ctors.length == 1
+        self.instance_variable_set("@#{ctor}", values.first)
+      else
+        self.instance_variable_set("@#{ctor}", Wrap.new(values.first))
+      end
     else
       self.instance_variable_set("@#{ctor}", values)
     end
@@ -101,7 +105,11 @@ class Algebraic
         if arity == 0
           return cases[k].call
         elsif arity == 1
-          return cases[k].call v.unwrap
+          if _ctors.length == 1
+            return cases[k].call v
+          else
+            return cases[k].call v.unwrap
+          end
         else
           return cases[k].call *v
         end
@@ -118,7 +126,11 @@ class Algebraic
         if arity == 0
           return "#{ctor.capitalize}[]"
         elsif arity == 1
-          return "#{ctor.capitalize}[#{v.unwrap.inspect}]"
+          if _ctors.length == 1
+            return "#{ctor.capitalize}[#{v.inspect}]"
+          else
+            return "#{ctor.capitalize}[#{v.unwrap.inspect}]"
+          end
         else
           return "#{ctor.capitalize}#{v.inspect}"
         end
