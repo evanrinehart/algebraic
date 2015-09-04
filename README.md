@@ -237,74 +237,42 @@ end
 => Let["f",Lambda["x",Times[Plus[Var["x"],Number[1]],Var["x"]],Apply[Var["f"],Number[9]]]]
 ```
 
-
-
-## Recursion Trouble
-
-Many utility functions for recursive structures like the list are easily
-implemented behind the scenes using recursion. However this won't be efficient
-in Ruby because each recursive call that doesn't return causes a frame to be
-pushed on the runtime's call stack. To traverse structures you will have to
-implement a traversal method like shown on a case by case basis.
+## Binary Tree Example
 
 ```ruby
-class List < Algebraic
-  est :empty
-  ou :cons, :x, :list
+class TwoTree < Algebraic
+  is :leaf
+  au :node, TwoTree, :x, TwoTree
 
-  def each &block
-    node = self
-    loop do
-      x,nextNode = node.case(  
-        empty: ->{ nil },
-        cons: ->(x,xs){ [x,xs] }
-      )
-      if x
-        block.call x
-        node = nextNode
-      else
-        return nil
-      end
-    end
-  end
-
-  def length
-    n = 0
-    self.each do |x|
-      n = n + 1
-    end
-    n
-  end
-
-  def to_a
-    a = []
-    self.each do |x|
-      a.push x
-    end
-    a
-  end
-
-  def map &block
-    l = List.empty
-    self.to_a.reverse.each do |x|
-      l = List.cons block.call(x), l
-    end
-    l
-  end
-
-  def bad_map &block
+  def contains? y
     self.case(
-      empty: ->{ List.empty },
-      cons: ->(x,xs){ List.cons block.call(x), xs.bad_map(&block) }
+      leaf: ->{ false },
+      node: ->(left, x, right){
+        case
+          when y==x then true
+          when y<x then left.contains? y
+          when y>x then right.contains? y
+        end
+      }
+    )
+  end
+
+  def insert y
+    leaf = TwoTree.leaf
+    self.case(
+      leaf: ->{ TwoTree.node leaf, y, leaf },
+      node: ->(left, x, right){
+        case
+          when y==x then self
+          when y<x then TwoTree.node left.insert(y), x, right
+          when y>x then TwoTree.node left, x, right.insert(y)
+        end
+      }
     )
   end
 end
 
-> l = List.empty
-> 100000.times{ l = List.cons 1, l }
-> l.bad_map{|x| x+1}.length
-SystemStackError: stack level too deep
-
-> l.map{|x| x+1}.length
-100000
+> TwoTree.leaf.insert(2).insert(3).insert(1)
+=> Node[Node[Leaf[], 1, Leaf[]], 2, Node[Leaf[], 3, Leaf[]]] 
 ```
+
