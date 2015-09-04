@@ -1,19 +1,24 @@
 class Algebraic
 
   class << self
-    attr_accessor :_ctors, :_arities
+    attr_accessor :_ctors, :_arities, :_schemas
     def alt ctor, *args
       @_ctors ||= []
       @_arities ||= {}
+      @_schemas ||= {}
       if @_ctors.include? ctor
         raise "ctor #{ctor} aleady defined"
       end
       @_ctors.push ctor
       @_arities[ctor] = args.length
-      self.class.send(:define_method, ctor, proc{|*args| self.new ctor, *args})
+      @_schemas[ctor] = args
+      self.class.send(:define_method, ctor, proc{|*args| self.new(:_shibboleth, ctor, *args)})
       self
     end
 
+    alias_method :is, :alt
+    alias_method :or, :alt
+    alias_method :orr, :alt
     alias_method :est, :alt
     alias_method :ou, :alt
     alias_method :ist, :alt
@@ -37,8 +42,29 @@ class Algebraic
     end
   end
 
-  def initialize ctor, *values
+  def initialize *args
+    if args.first == :_shibboleth
+      _init args[1], *args[2..-1]
+    elsif _ctors.length == 1
+      _init _ctors.first, *args
+    else
+      raise "Constructor ambiguous. Use one of #{_ctors.map{|x| "#{self.class}.#{x}"}.join(', ')}"
+    end
+  end
+
+  def _init ctor, *values
     arity = _arity_of ctor
+    if values.length != arity
+      raise "#{arity} arguments required, was provided #{values.length}"
+    end
+    schema = _schema_of ctor
+    values.each_with_index do |v, i|
+      c = schema[i]
+      if c.is_a?(Class) && !v.is_a?(c)
+        next if c == Boolean && (v.is_a?(TrueClass) || v.is_a?(FalseClass))
+        raise ArgumentError, "argument #{i+1} must be a #{c}, was provided a #{v.class}"
+      end
+    end
     if arity == 0
       self.instance_variable_set("@#{ctor}", true)
     elsif arity == 1
@@ -54,6 +80,10 @@ class Algebraic
 
   def _arity_of ctor
     self.class._arities[ctor]
+  end
+
+  def _schema_of ctor
+    self.class._schemas[ctor]
   end
 
   def case cases
@@ -99,4 +129,21 @@ class Algebraic
 
   alias_method :inspect, :to_s
 
+end
+
+class Boolean
+end
+
+class Pair < Algebraic
+  is :pair, :x, Boolean
+end
+
+class Opt < Algebraic
+  is :some, :x
+  au :none
+end
+
+class Tree < Algebraic
+  is :leaf
+  au :node, Tree, :x, Tree
 end

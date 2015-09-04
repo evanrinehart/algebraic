@@ -12,6 +12,7 @@ have any effect.
 
 ```ruby
 class Pair < Algebraic
+
   is :pair, :x, :y
 
   def left
@@ -29,6 +30,7 @@ class Pair < Algebraic
   def map &block
     block.call *@pair
   end
+
 end
 
 > Pair.pair 37, "shoes"
@@ -36,6 +38,9 @@ end
 
 > Pair.pair(37,"lo").map{|a,b| b * a }
 => "lololololololololololololololololololololololololololololololololololololo"
+
+> Pair.new true, nil # when there is only one ctor new works
+=> Pair[true, nil]
 ```
 
 In this example I create a safe wrapper for a result which may be missing.
@@ -45,6 +50,7 @@ to use French. (See below for more options.)
 
 ```ruby
 class Option < Algebraic
+
   est :some, :x
   ou :none
 
@@ -92,6 +98,14 @@ end
 => Some[nil]
 ```
 
+Unfortunately you can't use *or* without dynamically rewriting the syntax of
+your classes. But the following words can all be used for either *is* or *or*.
+They all do the same thing. For example you can avoid the language issue
+entirely by writing alt for all the cases.
+
+- `is est ist es как estas`
+- `orr ou oder o или au aŭ aux`
+- `alt`
 
 This is a basic enum class with four possibilities. Each Algebraic subclass
 has the case method which is the go-to technique for safely destructing or
@@ -100,10 +114,10 @@ instance.
 
 ```ruby
 class Suit < Algebraic
-  est :club
-  ou :diamond
-  ou :spade
-  ou :heart
+  alt :club
+  alt :diamond
+  alt :spade
+  alt :heart
 end
 
 > suit = Suit.diamond
@@ -118,19 +132,20 @@ end
 ```
 
 The linked list is a classic structure for sequential data and can be used
-as a stack.
+as a stack. Here I also demonstrate that providing a class as one of the
+arguments will provide a rudimentary runtime check for that argument.
 
 ```ruby
 class List < Algebraic
   est :empty
-  ou :cons, :x, :list
+  ou :cons, :x, List
 
   def push x
     List.cons x, self
   end
 
   def pop
-    case(
+    self.case(
       cons:  ->(x, xs){ x },
       empty: ->{ raise "Empty[].pop" }
     )
@@ -142,6 +157,9 @@ end
 
 > stack.pop
 => 3
+
+> List.cons 99, nil
+ArgumentError: argument 2 must be a List, was provided a NilClass
 ```
 
 ## Recursion Trouble
@@ -213,14 +231,3 @@ SystemStackError: stack level too deep
 > l.map{|x| x+1}.length
 100000
 ```
-
-## Alternatives to *is ... or ...*
-
-Unfortunately you can't use *or* without dynamically rewriting the syntax of
-your classes. But the following words can all be used for either *is* or *or*.
-They all do the same thing. For example you can avoid the language issue
-entirely by writing alt for all the cases.
-
-- `is est ist es как estas`
-- `orr ou oder o или au aŭ aux`
-- `alt`

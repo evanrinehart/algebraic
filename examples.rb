@@ -30,8 +30,8 @@ end
 
 class Boolean < Algebraic
 
-  est :t
-  ou :f
+  is :t
+  au :f
 
   def to_b
     !@false
@@ -58,8 +58,8 @@ end
 
 class Option < Algebraic
 
-  est :some, :x
-  ou :none
+  is :some, :x
+  au :none
 
   def default d
     self.case({
@@ -154,8 +154,8 @@ end
 
 class Result < Algebraic
 
-  est :ok, :x
-  ou :error, :y
+  is :ok, :x
+  au :error, :y
 
   def error?
     !@ok
@@ -173,8 +173,8 @@ end
 
 class Nat < Algebraic
 
-  est :z
-  ou :s, :n
+  is :z
+  au :s, :n
 
   def times &block
     y = self
@@ -219,8 +219,8 @@ end
 
 class List < Algebraic
 
-  est :empty
-  ou :cons, :x, :list
+  is :empty
+  au :cons, :x, :list
 
   def empty?
     !@cons
