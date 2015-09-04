@@ -27,7 +27,7 @@ class Pair < Algebraic
     @pair
   end
 
-  def map &block
+  def unpack &block
     block.call *@pair
   end
 
