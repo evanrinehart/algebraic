@@ -41,7 +41,7 @@ end
 In this example I create a safe wrapper for a result which may be missing.
 Something like this has the benefit of allowing the value nil to be
 distinguished from "no value" if necessary. *or* is a reserved word so I have
-to use French. (Or you can use German or Spanish. Russian как / или also works.)
+to use French. (See below for more options.)
 
 ```ruby
 class Option < Algebraic
@@ -214,3 +214,13 @@ SystemStackError: stack level too deep
 100000
 ```
 
+## Alternatives to *is ... or ...*
+
+Unfortunately you can't use *or* without dynamically rewriting the syntax of
+your classes. But the following words can all be used for either *is* or *or*.
+They all do the same thing. For example you can avoid the language issue
+entirely by writing alt for all the cases.
+
+- `is est ist es как estas`
+- `orr ou oder o или au aŭ aux`
+- `alt`

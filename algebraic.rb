@@ -2,29 +2,32 @@ class Algebraic
 
   class << self
     attr_accessor :_ctors, :_arities
-    def is ctor, *args
-      @_ctors = [ctor]
-      @_arities = {}
-      @_arities[ctor] = args.length
-
-      self.class.send(:define_method, ctor, proc{|*args| self.new ctor, *args})
-    end
-
-    def or ctor, *args
+    def alt ctor, *args
+      @_ctors ||= []
+      @_arities ||= {}
+      if @_ctors.include? ctor
+        raise "ctor #{ctor} aleady defined"
+      end
       @_ctors.push ctor
       @_arities[ctor] = args.length
-
       self.class.send(:define_method, ctor, proc{|*args| self.new ctor, *args})
+      self
     end
 
-    alias_method :est, :is
-    alias_method :ou, :or
-    alias_method :ist, :is
-    alias_method :oder, :or
-    alias_method :es, :is
-    alias_method :o, :or
-    alias_method :как, :is
-    alias_method :или, :or
+    alias_method :est, :alt
+    alias_method :ou, :alt
+    alias_method :ist, :alt
+    alias_method :oder, :alt
+    alias_method :es, :alt
+    alias_method :o, :alt
+    alias_method :как, :alt
+    alias_method :или, :alt
+    alias_method :orr, :alt
+    alias_method :|, :alt
+    alias_method :estas, :alt
+    alias_method :au, :alt
+    alias_method :aux, :alt
+    alias_method :aŭ, :alt
   end
 
   class Wrap
